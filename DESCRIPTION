@@ -1,0 +1,24 @@
+Package: surveymeta
+Title: Get metadata from IHSN survey catelogs
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Alasdair",
+           family = "McWilliam",
+           role = c("aut", "cre"),
+           email = "a.mc-william@unesco.org",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: surveymeta extracts survey metadata drom the International Household Survey Network Survey catalog. The package may also work with other catalogs part of the IHSN network.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: 
+    dplyr,
+    furrr,
+    future,
+    glue,
+    httr,
+    jsonlite,
+    purrr,
+    tidyr
