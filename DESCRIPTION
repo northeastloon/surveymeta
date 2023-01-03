@@ -22,3 +22,5 @@ Imports:
     jsonlite,
     purrr,
     tidyr
+URL: https://github.com/northeastloon/surveymeta
+BugReports: https://github.com/northeastloon/surveymeta/issues

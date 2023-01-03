@@ -4,14 +4,17 @@
 \alias{get_surveys}
 \title{survey search}
 \usage{
-get_surveys(base_url, min_year, max_year, ps = 10000)
+get_surveys(base_url, min_year, max_year, created = NULL, ps = 10000)
 }
 \arguments{
 \item{base_url}{The base url for the catelog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)}
 
 \item{min_year}{lower bound for the year the survey was published}
 
-\item{max_year}{upper bound for the year the survey was publishe.}
+\item{max_year}{upper bound for the year the survey was published.}
+
+\item{created}{Filter  by date of creation. Use the date format YYYY-MM-DD. E.g 2020/04/01 returns records created on and after that date.
+To specify a date range, use the format 2020/04/01-2020/04/20}
 
 \item{ps}{maximum number of results}
 }

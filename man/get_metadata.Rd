@@ -4,7 +4,14 @@
 \alias{get_metadata}
 \title{get variable metadata for multiple surveys}
 \usage{
-get_metadata(base_url, min_year, max_year, ps = 10000, var_meta = TRUE)
+get_metadata(
+  base_url,
+  min_year,
+  max_year,
+  created = NULL,
+  ps = 10000,
+  var_meta = TRUE
+)
 }
 \arguments{
 \item{base_url}{The base url for the catelog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)}
@@ -12,6 +19,8 @@ get_metadata(base_url, min_year, max_year, ps = 10000, var_meta = TRUE)
 \item{min_year}{lower bound for the year the survey was published}
 
 \item{max_year}{upper bound for the year the survey was published}
+
+\item{created}{Filter  by date of creation. Use the date format YYYY-MM-DD. E.g 2020/04/01 returns records created on and after that date.}
 
 \item{ps}{maximum number of results}
 
