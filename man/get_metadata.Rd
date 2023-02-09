@@ -14,7 +14,7 @@ get_metadata(
 )
 }
 \arguments{
-\item{base_url}{The base url for the catelog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)}
+\item{base_url}{The base url for the catalog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)}
 
 \item{min_year}{lower bound for the year the survey was published}
 
@@ -28,11 +28,9 @@ get_metadata(
 }
 \value{
 a list with three dataframes. 'Result' is for successful queries; 'failed_surveys' is for failed variable queries, by survey_id;
-'failed_variables' is for faield variable queries, by survey and variable id.
-
-@export
+'failed_variables' is for field variable queries, by survey and variable id.
 }
 \description{
 \code{get_metadata} is a wrapper function that gets the metadata for a queried surveys. Operations will run in parellel if
-\code{future::plan(multisession) is set before the function call }
+\code{future::plan(multisession)} is set before the function call
 }

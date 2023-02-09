@@ -4,7 +4,13 @@
 \alias{get_surveys}
 \title{survey search}
 \usage{
-get_surveys(base_url, min_year, max_year, created = NULL, ps = 10000)
+get_surveys(
+  base_url,
+  min_year = NULL,
+  max_year = NULL,
+  created = NULL,
+  ps = 10
+)
 }
 \arguments{
 \item{base_url}{The base url for the catelog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)}

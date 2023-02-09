@@ -28,7 +28,7 @@ get_surveys <- function(base_url, min_year = NULL, max_year = NULL, created = NU
   if (httr::http_error(response)) {
     stop(
       sprintf(
-        "IHSN API request failed [%s]\n%s",
+        "API request failed [%s]\n%s",
         httr::status_code(response),
         parsed$errors
         ), call. = FALSE
@@ -101,7 +101,7 @@ get_var_meta <- function(base_url, survey_id, variable_id) {
 
   #if error fetching variable metadata, return single row dataframe of variable affected
   if (httr::http_error(response)) {
-    out = tibble(survey_id = survey_id,
+    out = dplyr::tibble(survey_id = survey_id,
                  variable_id = variable_id,
                  status_code = httr::status_code(resp),
                  message = parsed$message)
@@ -110,7 +110,7 @@ get_var_meta <- function(base_url, survey_id, variable_id) {
 
   #parse result into dataframe, with, with fields with multiple repsonses as nested dataframes
 
-  var_metadata = format_metadata(parsed, tibble())
+  var_metadata = format_metadata(parsed, dplyr::tibble())
 
   return(list(error = FALSE, result = var_metadata))
 }
@@ -119,8 +119,8 @@ get_var_meta <- function(base_url, survey_id, variable_id) {
 #' get variable metadata for multiple surveys
 #'
 #' \code{get_metadata} is a wrapper function that gets the metadata for a queried surveys. Operations will run in parellel if
-#' \code{future::plan(multisession) is set before the function call }
-#' @param base_url The base url for the catelog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)
+#' \code{future::plan(multisession)} is set before the function call
+#' @param base_url The base url for the catalog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)
 #' @param min_year lower bound for the year the survey was published
 #' @param max_year upper bound for the year the survey was published
 #' @param created Filter  by date of creation. Use the date format YYYY-MM-DD. E.g 2020/04/01 returns records created on and after that date.
@@ -128,15 +128,21 @@ get_var_meta <- function(base_url, survey_id, variable_id) {
 #' @param var_meta If true returns variable metadata for queried surveys
 #'
 #' @return a list with three dataframes. 'Result' is for successful queries; 'failed_surveys' is for failed variable queries, by survey_id;
-#' 'failed_variables' is for faield variable queries, by survey and variable id.
+#' 'failed_variables' is for field variable queries, by survey and variable id.
 #'
-#'  @export
+#' @export
 
-get_metadata <- function(base_url, min_year, max_year, created = NULL, ps = 1e4, var_meta = TRUE) {
+get_metadata <- function(base_url, min_year, max_year, created = NULL, ps = 10, var_meta = TRUE) {
 
   #if variable metadata not requested, only return survey metadata
   surveys = get_surveys(base_url, min_year, max_year, created = created, ps = ps)
+
+  if(length(surveys) == 0) {
+    stop("no surveys found.", call. = FALSE)
+  }
+
   if(!var_meta){ return(surveys) }
+
 
   #get variable metadata for specified surveys
   vars <- furrr::future_map(surveys$idno, ~get_vars(base_url, .x))
