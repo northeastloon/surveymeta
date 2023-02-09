@@ -143,7 +143,6 @@ get_metadata <- function(base_url, min_year, max_year, created = NULL, ps = 10, 
 
   if(!var_meta){ return(surveys) }
 
-
   #get variable metadata for specified surveys
   vars <- furrr::future_map(surveys$idno, ~get_vars(base_url, .x))
   purrr::set_names(vars, surveys$idno)
@@ -158,11 +157,11 @@ get_metadata <- function(base_url, min_year, max_year, created = NULL, ps = 10, 
   #get variable metadata
   survey_vars_meta <- furrr::future_map2(survey_vars$idno, survey_vars$vid, ~get_var_meta(base_url, .x, .y))
 
-  failed_variables <- map_dfr(survey_vars_meta, ~if(.x[["error"]] == TRUE) .x[["result"]] else NULL)
+  failed_variables <- purrr::map_dfr(survey_vars_meta, ~if(.x[["error"]] == TRUE) .x[["result"]] else NULL)
 
-  passed_variables <-map_dfr(survey_vars_meta, ~if(.x[["error"]] == FALSE) .x[["result"]] else NULL)
+  passed_variables <- purrr::map_dfr(survey_vars_meta, ~if(.x[["error"]] == FALSE) .x[["result"]] else NULL)
   if(nrow(passed_variables) > 0) {
-    passed_variables <- inner_join(surveys, passed_variables %>% mutate(sid = as.numeric(sid)), by = c("id" = "sid"), suffix = c("survey", "var")) }
+    passed_variables <- dplyr::inner_join(surveys, passed_variables %>% dplyr::mutate(sid = as.numeric(sid)), by = c("id" = "sid"), suffix = c("survey", "var")) }
 
   #return data
   return(list(result = passed_variables,
