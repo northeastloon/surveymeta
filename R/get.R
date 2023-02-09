@@ -132,7 +132,7 @@ get_var_meta <- function(base_url, survey_id, variable_id) {
 #'
 #' @export
 
-get_metadata <- function(base_url, min_year, max_year, created = NULL, ps = 10, var_meta = TRUE) {
+get_metadata <- function(base_url, min_year = NULL, max_year = NULL, created = NULL, ps = 10, var_meta = TRUE) {
 
   #if variable metadata not requested, only return survey metadata
   surveys = get_surveys(base_url, min_year, max_year, created = created, ps = ps)
