@@ -6,10 +6,10 @@
 \usage{
 get_metadata(
   base_url,
-  min_year,
-  max_year,
+  min_year = NULL,
+  max_year = NULL,
   created = NULL,
-  ps = 10000,
+  ps = 10,
   var_meta = TRUE
 )
 }

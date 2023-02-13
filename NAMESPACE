@@ -2,6 +2,7 @@
 
 export("%>%")
 export(get_metadata)
+export(get_survey_meta)
 export(get_surveys)
 export(get_var_meta)
 export(get_vars)

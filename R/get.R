@@ -38,6 +38,33 @@ get_surveys <- function(base_url, min_year = NULL, max_year = NULL, created = NU
 }
 
 
+#' get survey metadata
+#'
+#' \code{get_survey_meta} Queries searches for surveys published between specified dates, and returns a dataframe of matching surveys.
+#'
+#' @param base_url The base url for the catelog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)
+#' @param  survey_id  Corresponds to idno in the object returned from \code{get_surveys}.
+#' @param ps maximum number of results
+#'
+#' @return a dataframe
+#' @export
+#'
+
+get_survey_meta <- function(base_url, survey_id) {
+
+  url = glue::glue("{base_url}/{survey_id}")
+  response <- httr::GET(url)
+
+  if (httr::http_type(response) != "application/json") {
+    stop("API did not return json", call. = FALSE)
+  }
+
+  parsed <- jsonlite::fromJSON(httr::content(response, "text"), simplifyVector = TRUE)
+  return(parsed$dataset)
+
+}
+
+
 #' get variables
 #'
 #' \code{get_vars} Returns a dataframe listing the available variables for a specified survey
@@ -88,7 +115,7 @@ get_vars <- function(base_url, survey_id) {
 #'@export
 
 #function to get metadata for a specified variable
-get_var_meta <- function(base_url, survey_id, variable_id) {
+get_var_meta <- function(base_url, survey_id, variable_id, format = TRUE) {
 
   url = glue::glue("{base_url}/{survey_id}/variables/{variable_id}")
   response <- httr::GET(url)
@@ -106,6 +133,10 @@ get_var_meta <- function(base_url, survey_id, variable_id) {
                  status_code = httr::status_code(resp),
                  message = parsed$message)
     return(list(error = TRUE, result = out))
+  }
+
+  if(isFALSE(format)) {
+    return(list(error = FALSE, result = parsed))
   }
 
   #parse result into dataframe, with, with fields with multiple repsonses as nested dataframes
