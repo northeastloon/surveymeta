@@ -27,3 +27,28 @@ format_metadata <-function(meta, df) {
   }
   return(df)
 }
+
+
+#' extract
+#'
+#'\code{extract_coverage_meta} selectively extracts fields related to survey coverage.
+#'
+#'@param meta A metadata response object (represented by an r list) from the '/catalog/{IDNo}/variables/{Surveyid}' endpoint
+
+#'@return a dataframe
+#'@export
+
+extract_coverage_meta <- function(meta) {
+
+  tibble(
+  start = meta$metadata$study_desc$study_info$coll_dates$start,
+  end = meta$metadata$study_desc$study_info$coll_dates$end,
+  geog_coverage = meta$metadata$study_desc$study_info$geog_coverage,
+  analysis_unit = meta$metadata$study_desc$study_info$analysis_unit,
+  universe = meta$metadata$study_desc$study_info$universe,
+  data_kind = meta$metadata$study_desc$study_info$data_kind,
+  notes = meta$metadata$study_desc$study_info$notes
+
+  )
+
+}

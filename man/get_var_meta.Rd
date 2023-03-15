@@ -4,7 +4,7 @@
 \alias{get_var_meta}
 \title{get variable metadata}
 \usage{
-get_var_meta(base_url, survey_id, variable_id)
+get_var_meta(base_url, survey_id, variable_id, format = TRUE)
 }
 \arguments{
 \item{base_url}{The base url for the catelog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)}
