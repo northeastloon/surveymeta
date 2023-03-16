@@ -50,6 +50,8 @@ get_surveys <- function(base_url, min_year = NULL, max_year = NULL, created = NU
 #' @export
 #'
 
+
+
 get_survey_meta <- function(base_url, survey_id) {
 
   url = glue::glue("{base_url}/{survey_id}")
@@ -63,6 +65,51 @@ get_survey_meta <- function(base_url, survey_id) {
   return(parsed$dataset)
 
 }
+
+
+#' survey search with supplementary metadata
+#'
+#' \code{get_surveys_meta} Queries searches for surveys published between specified dates, and returns a dataframe of matching surveys, with extended metadata for each survey
+#'
+#' @param base_url The base url for the catelog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)
+#' @param min_year lower bound for the year the survey was published
+#' @param max_year upper bound for the year the survey was published.
+#' @param created Filter  by date of creation. Use the date format YYYY-MM-DD. E.g 2020/04/01 returns records created on and after that date.
+#' To specify a date range, use the format 2020/04/01-2020/04/20
+#' @param ps maximum number of results
+#'
+#' @return a dataframe
+#' @export
+
+get_surveys_meta <- function(base_url, min_year = NULL, max_year = NULL, created = NULL, ps = 10) {
+
+ surveys <- get_surveys(base_url = base_url, min_year = min_year, max_year = max_year, created = created, ps = ps)
+
+ surveys_meta <- furrr::future_map(surveys$idno, ~get_survey_meta(base_url, .x)) |>
+   furrr::future_map(~format_metadata(.x, tibble()))
+
+ modal_types <- col_types(surveys_meta, 1000) #get modal  type of each column
+ list_cols <- modal_types |>
+   filter(modal_type == "list") |>
+   pull(column_name)
+
+ #reduce to a dataframe
+
+ surveys_meta_df <-  map(surveys_meta, function(df) {
+   for (col_name in list_cols) {
+     if (is.character(df[[col_name]])) {
+       df[[col_name]] <- list(tibble()) # Replace with an empty tibble (dataframe)
+     }
+   }
+   return(df)
+ })
+
+ surveys_meta_df <- reduce(surveys_meta_df, bind_rows)
+
+ return(surveys_meta_df)
+
+}
+
 
 
 #' get variables

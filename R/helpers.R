@@ -29,6 +29,50 @@ format_metadata <-function(meta, df) {
 }
 
 
+#' modal column types of a list of dataframes
+#'
+#' \code{col_types} returns the modal column types of a list of dataframes. To reduce computation time,
+#' dataframes can be sampled from the supplied list.
+#'
+#' @param data a list of dataframes (with the expectation a single row per dataframe)
+#' @param n_max number of dataframes to sample from the list. If n_max exceeds the length of the list,
+#' the full set is analyzed.
+#'
+#' @return a dataframe
+#'
+
+col_types <- function(data, max_n) {
+
+  if(!(is.list(data) && all(purrr::map_lgl(data, is.data.frame)))) {
+    stop("data argument should be a list")
+  }
+
+  if(!(is.numeric(max_n) &&  length(max_n) ==1)) {
+    stop("max_n should be a number")
+  }
+
+  #return maximum possible sample given max_n and length of list
+  size = min(length(data), max_n)
+
+  #return the mode type for each column
+
+  find_mode <- function(x) {
+    if(all(is.na(x))) {
+      return("list")
+    }
+    tbl <- table(x)
+    return(as.character(names(tbl[tbl == max(tbl)])))
+  }
+
+ col_types <- map_dfr(data[sample(1:length(data), size)], ~map(.x, typeof)) |>
+   summarize(across(everything(), find_mode)) |>
+   t() %>%
+   as_tibble(rownames = "column_name") %>%
+   rename(modal_type = V1)
+
+}
+
+
 #' extract
 #'
 #'\code{extract_coverage_meta} selectively extracts fields related to survey coverage.
