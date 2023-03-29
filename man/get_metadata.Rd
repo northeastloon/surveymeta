@@ -4,33 +4,22 @@
 \alias{get_metadata}
 \title{get variable metadata for multiple surveys}
 \usage{
-get_metadata(
-  base_url,
-  min_year = NULL,
-  max_year = NULL,
-  created = NULL,
-  ps = 10,
-  var_meta = TRUE
-)
+get_metadata(base_url, ids = NULL, var_meta = TRUE)
 }
 \arguments{
 \item{base_url}{The base url for the catalog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)}
 
-\item{min_year}{lower bound for the year the survey was published}
+\item{ids}{character vector of survey ids (idno)}
 
-\item{max_year}{upper bound for the year the survey was published}
-
-\item{created}{Filter  by date of creation. Use the date format YYYY-MM-DD. E.g 2020/04/01 returns records created on and after that date.}
+\item{var_meta}{if true returns variable metadata for queried surveys}
 
 \item{ps}{maximum number of results}
-
-\item{var_meta}{If true returns variable metadata for queried surveys}
 }
 \value{
 a list with three dataframes. 'Result' is for successful queries; 'failed_surveys' is for failed variable queries, by survey_id;
 'failed_variables' is for field variable queries, by survey and variable id.
 }
 \description{
-\code{get_metadata} is a wrapper function that gets the metadata for a queried surveys. Operations will run in parellel if
+\code{get_metadata} is a wrapper function that gets the metadata for a specified surveys. Operations will run in parallel if
 \code{future::plan(multisession)} is set before the function call
 }

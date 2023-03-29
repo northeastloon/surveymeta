@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{extract_coverage_meta}
 \alias{extract_coverage_meta}
-\title{extract}
+\title{extract metadata fields data relevant to analysis of survey coverage}
 \usage{
 extract_coverage_meta(meta)
 }

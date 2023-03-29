@@ -196,41 +196,47 @@ get_var_meta <- function(base_url, survey_id, variable_id, format = TRUE) {
 
 #' get variable metadata for multiple surveys
 #'
-#' \code{get_metadata} is a wrapper function that gets the metadata for a queried surveys. Operations will run in parellel if
+#' \code{get_metadata} is a wrapper function that gets the metadata for a specified surveys. Operations will run in parallel if
 #' \code{future::plan(multisession)} is set before the function call
 #' @param base_url The base url for the catalog (for IHSN this is http://catalog.ihsn.org/index.php/api/catalog/)
-#' @param min_year lower bound for the year the survey was published
-#' @param max_year upper bound for the year the survey was published
-#' @param created Filter  by date of creation. Use the date format YYYY-MM-DD. E.g 2020/04/01 returns records created on and after that date.
+#' @param ids character vector of survey ids (idno)
 #' @param ps maximum number of results
-#' @param var_meta If true returns variable metadata for queried surveys
+#' @param var_meta if true returns variable metadata for queried surveys
 #'
 #' @return a list with three dataframes. 'Result' is for successful queries; 'failed_surveys' is for failed variable queries, by survey_id;
 #' 'failed_variables' is for field variable queries, by survey and variable id.
 #'
 #' @export
 
-get_metadata <- function(base_url, min_year = NULL, max_year = NULL, created = NULL, ps = 10, var_meta = TRUE) {
+get_metadata <- function(base_url,
+                         ids = NULL,
+                         var_meta = TRUE) {
 
-  #if variable metadata not requested, only return survey metadata
-  surveys = get_surveys(base_url, min_year, max_year, created = created, ps = ps)
 
-  if(length(surveys) == 0) {
-    stop("no surveys found.", call. = FALSE)
+  if(is.null(ids)) {
+    stop("specify survey ids for which to extract metadata")
   }
 
-  if(!var_meta){ return(surveys) }
+  #get survey metadata
+
+  survey_meta <- furrr::future_map(ids, ~get_survey_meta(base_url, .x))
+  survey_meta_df <- reduce_survey_metadata(survey_meta)
+
+  if(!isTRUE(var_meta)){
+    return(survey_meta_df)
+  }
 
   #get variable metadata for specified surveys
-  vars <- furrr::future_map(surveys$idno, ~get_vars(base_url, .x))
-  purrr::set_names(vars, surveys$idno)
+  vars <- furrr::future_map(survey_meta_df$idno, ~get_vars(base_url, .x))
+  vars <- purrr::set_names(vars, survey_meta_df$idno)
 
-  failed_surveys <- purrr::map(vars, "error") %>%
-    dplyr::tibble(error = ., idno = surveys$idno)  %>%
+  failed_surveys <- purrr::map2_dfr(vars, names(vars), function(x, id) { tibble(idno = id, error = x$error) }) |>
     dplyr::filter(isTRUE(error))
 
   passed_surveys <- purrr::map_dfr(vars, "result")
-  survey_vars <- dplyr::inner_join(surveys,  passed_surveys %>% dplyr::mutate(sid = as.numeric(sid)), by = c("id" = "sid"))
+  empty_vars <- names(vars)[map_lgl(vars, ~ .x$error == FALSE & length(.x$result) == 0)]
+
+  survey_vars <- dplyr::inner_join(survey_meta_df,  passed_surveys, by = c("id" = "sid"))
 
   #get variable metadata
   survey_vars_meta <- furrr::future_map2(survey_vars$idno, survey_vars$vid, ~get_var_meta(base_url, .x, .y))
@@ -239,11 +245,13 @@ get_metadata <- function(base_url, min_year = NULL, max_year = NULL, created = N
 
   passed_variables <- purrr::map_dfr(survey_vars_meta, ~if(.x[["error"]] == FALSE) .x[["result"]] else NULL)
   if(nrow(passed_variables) > 0) {
-    passed_variables <- dplyr::inner_join(surveys, passed_variables %>% dplyr::mutate(sid = as.numeric(sid)), by = c("id" = "sid"), suffix = c("survey", "var")) }
+    passed_variables <- dplyr::inner_join(survey_meta_df, passed_variables, by = c("id" = "sid"), suffix = c("survey", "var")) }
 
   #return data
   return(list(result = passed_variables,
-              failed_surveys = vars$failed_surveys,
+              no_vars = empty_vars,
+              failed_surveys = failed_surveys,
               failed_variables = failed_variables))
+
 }
 

@@ -72,8 +72,45 @@ col_types <- function(data, max_n) {
 
 }
 
+#' format and reduce a list of survey metadata to a dataframe
+#'
+#' \code{reduce_metadata} returns a formatted dataframe of survey metadata, with a row per survey. As columns with no data that
+#' would typically be expected as a list are of type character when after application of \code{format_metadata}, they are converted to list
+#' based on inferring their correct type using \code{col_type}.
+#'
+#'
+#' @param data a list of dataframes (with the expectation a single row per dataframe)
 
-#' extract
+#' @return a dataframe
+#'
+#'@export
+
+reduce_survey_metadata <- function(data) {
+
+
+  survey_meta_format <- purrr::map(data, ~format_metadata(.x, tibble()))
+
+  list_cols  <- col_types(survey_meta_format, 1000) |> #get modal column type of list of dataframes
+    filter(modal_type == "list") |>
+    pull(column_name)
+
+  # convert empty character columns to list and reduce to dataframe
+  survey_meta_format <- purrr::map(survey_meta_format, function(df) {
+    for (col_name in list_cols) {
+      if (is.character(df[[col_name]])) {
+        df[[col_name]] <- list(tibble()) # Replace with an empty tibble (dataframe)
+      }
+    }
+    return(df)
+  })
+
+  survey_meta_df <- reduce(survey_meta_format, bind_rows)
+  return(survey_meta_df)
+
+}
+
+
+#' extract metadata fields data relevant to analysis of survey coverage
 #'
 #'\code{extract_coverage_meta} selectively extracts fields related to survey coverage.
 #'
