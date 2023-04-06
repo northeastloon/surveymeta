@@ -64,7 +64,7 @@ col_types <- function(data, max_n) {
     return(as.character(names(tbl[tbl == max(tbl)])))
   }
 
- col_types <- map_dfr(data[sample(1:length(data), size)], ~map(.x, typeof)) |>
+ col_types <- purrr::map_dfr(data[sample(1:length(data), size)], ~map(.x, typeof)) |>
    summarize(across(everything(), find_mode)) |>
    t() %>%
    as_tibble(rownames = "column_name") %>%
@@ -108,6 +108,44 @@ reduce_survey_metadata <- function(data) {
   return(survey_meta_df)
 
 }
+
+
+#' format and reduce a list of variable metadata
+#'
+#'Provided a list of variable meta data,  \code{var_meta_format} infers column types using \code{col_type} and converts
+#'list and character variables that are not of the inferred type.
+#'
+#'@param data a list of dataframes (with the expectation a single row per dataframe)
+
+#'@return a dataframe
+
+var_meta_format <- function(data) {
+
+  results <- purrr::map(data, ~if(.x[["error"]] == FALSE) .x[["result"]] else NULL)
+  types <- col_types(results, 1000)
+  list_cols <- filter(types, modal_type == "list") |> pull(column_name)
+  char_cols <- filter(types, modal_type == "character") |> pull(column_name)
+
+
+  # convert empty character columns to list and reduce to dataframe
+  var_meta_format <- purrr::map(data, function(item) {
+    if(isFALSE(item$error)) {
+      for (col in names(item$result)) {
+        if (col %in% list_cols && !is.list(item[["result"]][[col]])) {
+          item[["result"]][[col]] <- list(tibble()) # Replace with an empty tibble (dataframe)
+        }
+        if (col %in% char_cols && !is.character(item[["result"]][[col]])) {
+          item[["result"]][[col]] <- as.character(item[["result"]][[col]])
+        }
+      }
+    }
+    return(item)
+  })
+
+  return(var_meta_format)
+
+}
+
 
 
 #' extract metadata fields data relevant to analysis of survey coverage

@@ -240,10 +240,11 @@ get_metadata <- function(base_url,
 
   #get variable metadata
   survey_vars_meta <- furrr::future_map2(survey_vars$idno, survey_vars$vid, ~get_var_meta(base_url, .x, .y))
+  survey_vars_meta_fmt <- var_meta_format(survey_vars_meta)
 
-  failed_variables <- purrr::map_dfr(survey_vars_meta, ~if(.x[["error"]] == TRUE) .x[["result"]] else NULL)
+  failed_variables <- purrr::map_dfr(survey_vars_meta_fmt, ~if(.x[["error"]] == TRUE) .x[["result"]] else NULL)
 
-  passed_variables <- purrr::map_dfr(survey_vars_meta, ~if(.x[["error"]] == FALSE) .x[["result"]] else NULL)
+  passed_variables <- purrr::map_dfr(survey_vars_meta_fmt, ~if(.x[["error"]] == FALSE) .x[["result"]] else NULL)
   if(nrow(passed_variables) > 0) {
     passed_variables <- dplyr::inner_join(survey_meta_df, passed_variables, by = c("id" = "sid"), suffix = c("survey", "var")) }
 
